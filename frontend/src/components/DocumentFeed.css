@@ -1,0 +1,121 @@
+.document-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.feed-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 4px solid transparent;
+  min-height: 160px;
+}
+
+.feed-card:hover {
+  border-left-color: #1a9b71;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateX(4px);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.card-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.time-ago {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.detector {
+  font-size: 10px;
+  color: #1a9b71;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+.confidence-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a9b71;
+  padding: 4px 8px;
+  background-color: rgba(26, 155, 113, 0.1);
+  border-radius: 4px;
+}
+
+.card-title {
+  margin: 12px 0 8px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.card-description {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.card-tags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 4px 8px;
+  background-color: #f0f0f0;
+  color: #666;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #e8e8e8;
+  font-size: 12px;
+  color: #888;
+}
+
+.chunk-count {
+  font-weight: 500;
+}
+
+.status-badge {
+  padding: 2px 6px;
+  background-color: #e8f5e9;
+  color: #1a9b71;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+}

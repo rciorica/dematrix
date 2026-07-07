@@ -1,0 +1,92 @@
+.citation-badge {
+  margin-bottom: 8px;
+}
+
+.citation-trigger {
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background-color: #f0f7ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  transition: background-color 0.2s;
+}
+
+.citation-trigger:hover {
+  background-color: #e3f2fd;
+}
+
+.citation-doc {
+  flex: 1;
+  font-weight: 600;
+  color: #1976d2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.citation-page {
+  color: #666;
+  font-size: 12px;
+}
+
+.relevance-score {
+  background-color: #2196f3;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+  font-size: 11px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.citation-details {
+  margin-top: 4px;
+  padding: 12px;
+  background-color: #f5f9ff;
+  border: 1px solid #e0e7ff;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 6px;
+}
+
+.detail-row:last-of-type {
+  margin-bottom: 0;
+}
+
+.detail-row .label {
+  font-weight: 600;
+  color: #666;
+  min-width: 80px;
+}
+
+.detail-row .value {
+  color: #333;
+  flex: 1;
+  overflow-wrap: break-word;
+}
+
+.snippet {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e0e7ff;
+}
+
+.snippet p {
+  margin: 0;
+  color: #555;
+  font-size: 12px;
+  line-height: 1.4;
+  font-style: italic;
+}

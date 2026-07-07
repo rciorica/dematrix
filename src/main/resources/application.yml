@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: enterprise-doc-analyzer
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:schema.sql
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/docdb}
+    driverClassName: org.postgresql.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:docuser}
+    password: ${SPRING_DATASOURCE_PASSWORD:docpass123}
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+server:
+  port: 8080
+
+app:
+  llm:
+    provider: mock
+    api-key: ${OPENAI_API_KEY:sk-test-key}
+    model: gpt-4-turbo-preview
+    embedding-model: text-embedding-3-small
+    temperature: 0.7
+    max-tokens: 2000
+  
+  chroma:
+    url: http://localhost:8000
+    embedding-model: all-MiniLM-L6-v2
+  
+  storage:
+    upload-dir: ./uploads
+    max-file-size: 52428800
+  
+  chunking:
+    chunk-size: 1000
+    chunk-overlap: 100
+    min-chunk-size: 100
+  
+  search:
+    top-k: 5
+    similarity-threshold: 0.7
+
+logging:
+  level:
+    root: INFO
+    com.docanalysis: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"

@@ -1,0 +1,87 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: doc-analyzer-backend
+    ports:
+      - "8080:8080"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-test-key}
+      CHROMA_URL: http://chroma:8000
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/docdb
+      SPRING_DATASOURCE_USERNAME: docuser
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-docpass123}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chroma:
+        condition: service_started
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - docnet
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: doc-analyzer-db
+    environment:
+      POSTGRES_DB: docdb
+      POSTGRES_USER: docuser
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-docpass123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - docnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docuser -d docdb"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  chroma:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: doc-analyzer-vector-db
+    ports:
+      - "8001:8000"
+    environment:
+      CHROMA_DB_IMPL: duckdb+parquet
+      PERSIST_DIRECTORY: /chroma/data
+    volumes:
+      - chroma_data:/chroma/data
+    networks:
+      - docnet
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: doc-analyzer-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      REACT_APP_API_URL: http://localhost:8080/api
+      NODE_ENV: development
+    networks:
+      - docnet
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
+  chroma_data:
+
+networks:
+  docnet:
+    driver: bridge

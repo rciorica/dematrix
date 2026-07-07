@@ -1,0 +1,111 @@
+.document-dropzone {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dropzone {
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  padding: 32px;
+  text-align: center;
+  transition: all 0.3s ease;
+  background-color: #fafafa;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.dropzone:hover {
+  border-color: #1a9b71;
+  background-color: rgba(26, 155, 113, 0.03);
+}
+
+.dropzone.drag-over {
+  border-color: #1a9b71;
+  background-color: rgba(26, 155, 113, 0.05);
+  transform: scale(1.02);
+}
+
+.dropzone.loading {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.upload-icon {
+  width: 48px;
+  height: 48px;
+  color: #999;
+  margin-bottom: 12px;
+  pointer-events: none;
+}
+
+.dropzone h3 {
+  margin: 12px 0 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  pointer-events: none;
+}
+
+.dropzone p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  pointer-events: none;
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.spinner {
+  border: 3px solid #f0f0f0;
+  border-top-color: #1a9b71;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.document-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.document-title input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.document-title input:focus {
+  outline: none;
+  border-color: #1a9b71;
+  box-shadow: 0 0 0 2px rgba(26, 155, 113, 0.1);
+}
+
+.error-message {
+  padding: 8px 12px;
+  background-color: #ffebee;
+  color: #c41e3a;
+  border-radius: 4px;
+  font-size: 13px;
+}

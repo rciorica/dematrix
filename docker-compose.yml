@@ -4,11 +4,12 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: doc-analyzer-backend
-    ports:
-      - "8080:8080"
+    env_file:
+      - .env
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-test-key}
       CHROMA_URL: http://chroma:8000
+      OLLAMA_BASE_URL: http://ollama:11434
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/docdb
       SPRING_DATASOURCE_USERNAME: docuser
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-docpass123}
@@ -17,13 +18,17 @@ services:
         condition: service_healthy
       chroma:
         condition: service_started
+      ollama:
+        condition: service_started
+      ollama-init:
+        condition: service_completed_successfully
     volumes:
       - ./uploads:/app/uploads
       - ./logs:/app/logs
     networks:
       - docnet
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/chat/health"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -51,7 +56,7 @@ services:
     image: ghcr.io/chroma-core/chroma:latest
     container_name: doc-analyzer-vector-db
     ports:
-      - "8001:8000"
+      - "8002:8000"
     environment:
       CHROMA_DB_IMPL: duckdb+parquet
       PERSIST_DIRECTORY: /chroma/data
@@ -60,13 +65,38 @@ services:
     networks:
       - docnet
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: doc-analyzer-ollama
+    ports:
+      - "11434:11434"
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - docnet
+    command: serve
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: doc-analyzer-ollama-init
+    depends_on:
+      ollama:
+        condition: service_started
+    environment:
+      OLLAMA_HOST: ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-mistral}
+    networks:
+      - docnet
+    entrypoint: ["/bin/sh", "-c", "echo Pulling Ollama model: $${OLLAMA_MODEL}; ollama pull $${OLLAMA_MODEL}"]
+    restart: "no"
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: doc-analyzer-frontend
-    ports:
-      - "3000:3000"
     depends_on:
       backend:
         condition: service_healthy
@@ -78,9 +108,46 @@ services:
     stdin_open: true
     tty: true
 
+  nginx:
+    image: nginx:alpine
+    container_name: doc-analyzer-nginx
+    ports:
+      - "3000:80"
+      - "8080:8080"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - docnet
+
+  db-backup:
+    build:
+      context: .
+      dockerfile: Dockerfile.backup
+    container_name: doc-analyzer-db-backup
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD:-docpass123}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backups:/backups
+      - ./backup.sh:/app/backup.sh:ro
+    networks:
+      - docnet
+    entrypoint: |
+      sh -c 'while true; do
+        /app/backup.sh
+        echo "Next backup in 24 hours..."
+        sleep 86400
+      done'
+
 volumes:
   postgres_data:
   chroma_data:
+  ollama_data:
 
 networks:
   docnet:

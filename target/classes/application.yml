@@ -1,9 +1,11 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: enterprise-doc-analyzer
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop
     show-sql: false
     properties:
       hibernate:
@@ -18,32 +20,43 @@ spring:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
+  web:
+    resources:
+      static-locations: classpath:/static/, classpath:/public/
 
 server:
   port: 8080
+  error:
+    whitelabel:
+      enabled: false
 
 app:
   llm:
-    provider: mock
-    api-key: ${OPENAI_API_KEY:sk-test-key}
-    model: gpt-4-turbo-preview
-    embedding-model: text-embedding-3-small
     temperature: 0.7
     max-tokens: 2000
-  
+
+  ollama:
+    base-url: ${OLLAMA_BASE_URL:http://ollama:11434}
+    model: ${OLLAMA_MODEL:mistral}
+
+  voyage:
+    api-key: ${VOYAGE_API_KEY:}
+    base-url: ${VOYAGE_BASE_URL:https://api.voyageai.com/v1/embeddings}
+    model: ${VOYAGE_MODEL:voyage-3}
+
   chroma:
-    url: http://localhost:8000
+    url: ${CHROMA_URL:http://localhost:8000}
     embedding-model: all-MiniLM-L6-v2
-  
+
   storage:
     upload-dir: ./uploads
     max-file-size: 52428800
-  
+
   chunking:
     chunk-size: 1000
     chunk-overlap: 100
     min-chunk-size: 100
-  
+
   search:
     top-k: 5
     similarity-threshold: 0.7

@@ -16,7 +16,7 @@ export const ChatConsole = ({ document, onClose }) => {
 
   useEffect(() => {
     const chunks = messages
-      .filter((msg) => msg.chunk && !msg.isFinished)
+      .filter((msg) => msg.chunk)
       .map((msg) => msg.chunk)
       .join('');
     setFullResponse(chunks);

@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/analytics")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class AnalyticsController {
     
     private final DocumentRepository documentRepository;

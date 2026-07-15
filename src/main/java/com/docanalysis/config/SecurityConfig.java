@@ -1,18 +1,11 @@
 package com.docanalysis.config;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Security configuration. CORS is handled by CorsConfig.
+ */
 @Configuration
-public class SecurityConfig implements WebMvcConfigurer {
-    
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("*")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .maxAge(3600);
-    }
+public class SecurityConfig {
+    // CORS configuration moved to CorsConfig to avoid conflicts
 }

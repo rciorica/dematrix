@@ -1,0 +1,5 @@
+com\docanalysis\service\RagIntegrationServiceTest.class
+com\docanalysis\acceptance\AcceptanceTest.class
+com\docanalysis\controller\DocumentControllerTest.class
+com\docanalysis\service\ChromaDbServiceTest$1.class
+com\docanalysis\service\ChromaDbServiceTest.class

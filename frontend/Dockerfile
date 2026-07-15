@@ -6,11 +6,11 @@ COPY package*.json ./
 
 RUN npm install --legacy-peer-deps
 
-COPY .env .env
 COPY public ./public
 COPY src ./src
 
-ENV REACT_APP_API_URL=http://localhost:8080/api
+# DO NOT set REACT_APP_API_URL here - let runtime detection handle it
+# The app will auto-detect localhost:8080 in the browser
 
 RUN npm run build
 

@@ -1,0 +1,6 @@
+- Chroma container ghcr.io/chroma-core/chroma:latest rejects /api/v1 with HTTP 410 (deprecated).
+- Backend must use /api/v2 endpoints.
+- Collection query/upsert routes are ID-based in v2: /api/v2/tenants/{tenant}/databases/{database}/collections/{collection_id}/query|upsert.
+- Resolve collection_id via POST /api/v2/tenants/{tenant}/databases/{database}/collections with {"name": ..., "get_or_create": true}.
+- Default local tenant/database validated: default_tenant / default_database.
+- After backend container rebuild, restart nginx to refresh upstream resolution and avoid transient 502.

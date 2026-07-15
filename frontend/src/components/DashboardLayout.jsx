@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { DocumentDropzone } from './DocumentDropzone';
+import { api } from '../services/api';
 
 export const DashboardLayout = () => {
   const [documents, setDocuments] = useState([]);
@@ -71,8 +72,8 @@ export const DashboardLayout = () => {
   const loadAnalytics = async () => {
     try {
       const [entitiesRes, statsRes] = await Promise.all([
-        fetch(`${process.env.REACT_APP_API_URL}/analytics/entities`),
-        fetch(`${process.env.REACT_APP_API_URL}/analytics/stats`)
+        fetch(api.analytics.entities),
+        fetch(api.analytics.stats)
       ]);
       
       if (entitiesRes.ok) setEntities(await entitiesRes.json());
@@ -84,7 +85,7 @@ export const DashboardLayout = () => {
 
   const loadSettings = async () => {
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/settings`);
+      const res = await fetch(api.settings);
       if (res.ok) {
         const data = await res.json();
         setSettings(data);
@@ -98,7 +99,7 @@ export const DashboardLayout = () => {
     if (!settings) return;
     setSavingSettings(true);
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/settings`, {
+      const res = await fetch(api.settings, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
@@ -119,7 +120,7 @@ export const DashboardLayout = () => {
   const loadDocuments = async (pageNum, reset = false) => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/documents/list?page=${pageNum}&size=20`,
+        `${api.documents.list}?page=${pageNum}&size=20`,
         { method: 'GET', headers: { 'Content-Type': 'application/json' } }
       );
 
@@ -165,12 +166,51 @@ export const DashboardLayout = () => {
     if (!chatInput.trim() || !selectedDoc) return;
     
     const userMessage = chatInput;
+    const assistantMessageId = `assistant-${Date.now()}`;
     setChatInput('');
-    setChatMessages(prev => [...prev, { type: 'user', text: userMessage }]);
+    setChatMessages(prev => [
+      ...prev,
+      { type: 'user', text: userMessage },
+      { id: assistantMessageId, type: 'assistant', text: '' }
+    ]);
     setChatLoading(true);
+
+    const appendAssistantChunk = (chunk) => {
+      if (!chunk) {
+        return;
+      }
+
+      setChatMessages(prev => prev.map(msg => (
+        msg.id === assistantMessageId
+          ? { ...msg, text: `${msg.text}${chunk}` }
+          : msg
+      )));
+    };
+
+    const setAssistantError = (message) => {
+      setChatMessages(prev => prev.map(msg => (
+        msg.id === assistantMessageId
+          ? { ...msg, type: 'error', text: `Error: ${message}` }
+          : msg
+      )));
+    };
+
+    const processSseLine = (line) => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine.startsWith('data:')) {
+        return;
+      }
+
+      const data = JSON.parse(trimmedLine.slice(5).trim());
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      appendAssistantChunk(data.chunk);
+    };
     
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/chat/stream`, {
+      const response = await fetch(api.chat.stream, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -182,18 +222,45 @@ export const DashboardLayout = () => {
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-      const data = await response.json();
-      
-      if (data.response) {
-        setChatMessages(prev => [...prev, { type: 'assistant', text: data.response }]);
-      } else if (data.error) {
-        setChatMessages(prev => [...prev, { type: 'error', text: 'Error: ' + data.error }]);
-      } else {
-        setChatMessages(prev => [...prev, { type: 'error', text: 'No response received' }]);
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const data = await response.json();
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        appendAssistantChunk(data.chunk);
+        return;
+      }
+
+      if (!response.body) {
+        throw new Error('Streaming response body is not available');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          processSseLine(line);
+        }
+      }
+
+      if (buffer.trim()) {
+        processSseLine(buffer);
       }
     } catch (err) {
       console.error('Chat error:', err);
-      setChatMessages(prev => [...prev, { type: 'error', text: 'Error: ' + err.message }]);
+      setAssistantError(err.message);
     } finally {
       setChatLoading(false);
     }

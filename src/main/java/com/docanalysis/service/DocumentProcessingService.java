@@ -19,6 +19,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * Handles document processing: extraction, chunking, and embedding generation.
+ * Process is synchronous for MVP simplicity.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -38,6 +42,13 @@ public class DocumentProcessingService {
     @Value("${app.chunking.min-chunk-size:100}")
     private int minChunkSize;
     
+    /**
+     * Process a document: extract text, chunk, and generate embeddings.
+     * @param fileName Original file name
+     * @param title Display title
+     * @param filePath Path to uploaded file
+     * @return Processed document entity
+     */
     public Document processDocument(String fileName, String title, String filePath) {
         try {
             log.info("Starting document processing: {}", fileName);
@@ -46,7 +57,7 @@ public class DocumentProcessingService {
                     .fileName(fileName)
                     .title(title)
                     .filePathRef(filePath)
-                    .status(Document.DocumentStatus.PROCESSING)
+                    .status("PROCESSING")
                     .fileType(extractFileType(fileName))
                     .fileSize(getFileSize(filePath))
                     .build();
@@ -70,12 +81,11 @@ public class DocumentProcessingService {
             List<DocumentChunk> chunks = performSmartChunking(document, extractedText);
             log.info("Created {} chunks for document: {}", chunks.size(), document.getId());
             
-            document.setChunks(chunks);
             document.setChunkCount(chunks.size());
-            document.setStatus(Document.DocumentStatus.INDEXED);
+            document.setStatus("INDEXED");
             document = documentRepository.save(document);
             
-            // Generate embeddings for all chunks
+            // Generate embeddings for all chunks (synchronous for MVP)
             for (DocumentChunk chunk : chunks) {
                 vectorEmbeddingService.generateAndStoreEmbedding(chunk);
             }
@@ -153,7 +163,6 @@ public class DocumentProcessingService {
     }
     
     private boolean detectTableData(String text) {
-        // Simple heuristic: if text contains multiple pipes or tabs, likely a table
         int pipeCount = text.split("\\|", -1).length - 1;
         int tabCount = text.split("\t", -1).length - 1;
         return pipeCount > 2 || tabCount > 2;

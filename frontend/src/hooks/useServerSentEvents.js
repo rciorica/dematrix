@@ -6,6 +6,20 @@ export const useServerSentEvents = () => {
   const [error, setError] = useState(null);
   const eventSourceRef = useRef(null);
 
+  const handleSseLine = useCallback((line) => {
+    const trimmedLine = line.trim();
+    if (!trimmedLine.startsWith('data:')) {
+      return;
+    }
+
+    try {
+      const data = JSON.parse(trimmedLine.slice(5).trim());
+      setMessages((prev) => [...prev, data]);
+    } catch (e) {
+      console.error('Failed to parse SSE message:', e);
+    }
+  }, []);
+
   const streamChatResponse = useCallback(async (query, conversationId) => {
     setError(null);
     setIsConnected(true);
@@ -28,6 +42,20 @@ export const useServerSentEvents = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const data = await response.json();
+        setMessages([{
+          ...data,
+          isFinished: data.isFinished ?? true,
+        }]);
+        return;
+      }
+
+      if (!response.body) {
+        throw new Error('Streaming response body is not available');
+      }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
@@ -42,15 +70,12 @@ export const useServerSentEvents = () => {
         buffer = lines.pop();
 
         for (const line of lines) {
-          if (line.startsWith('data:')) {
-            try {
-              const data = JSON.parse(line.slice(5));
-              setMessages((prev) => [...prev, data]);
-            } catch (e) {
-              console.error('Failed to parse SSE message:', e);
-            }
-          }
+          handleSseLine(line);
         }
+      }
+
+      if (buffer.trim()) {
+        handleSseLine(buffer);
       }
     } catch (err) {
       setError(err.message);
@@ -58,7 +83,7 @@ export const useServerSentEvents = () => {
     } finally {
       setIsConnected(false);
     }
-  }, []);
+  }, [handleSseLine]);
 
   const closeConnection = useCallback(() => {
     if (eventSourceRef.current) {

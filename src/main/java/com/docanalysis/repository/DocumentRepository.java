@@ -14,7 +14,7 @@ public interface DocumentRepository extends JpaRepository<Document, String> {
     
     List<Document> findByOwnerId(String ownerId);
     
-    List<Document> findByStatus(Document.DocumentStatus status);
+    List<Document> findByStatus(String status);
     
     @Query("SELECT d FROM Document d WHERE d.status = 'INDEXED' ORDER BY d.uploadedAt DESC")
     List<Document> findIndexedDocuments();
@@ -22,5 +22,5 @@ public interface DocumentRepository extends JpaRepository<Document, String> {
     Optional<Document> findByIdAndOwnerId(String id, String ownerId);
     
     @Query("SELECT COUNT(d) FROM Document d WHERE d.status = :status")
-    Long countByStatus(@Param("status") Document.DocumentStatus status);
+    Long countByStatus(@Param("status") String status);
 }

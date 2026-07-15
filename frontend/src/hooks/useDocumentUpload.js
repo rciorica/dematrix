@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { api } from '../services/api';
 
 export const useDocumentUpload = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,9 +19,8 @@ export const useDocumentUpload = () => {
       }
 
       // Log the request
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const uploadUrl = `${apiUrl}/documents/upload`;
-      console.log('Uploading to:', uploadUrl);
+      const apiUrl = api.documents.upload;
+      console.log('Uploading to:', apiUrl);
       console.log('File:', file.name, file.size);
 
       const xhr = new XMLHttpRequest();
@@ -66,7 +66,7 @@ export const useDocumentUpload = () => {
           reject(new Error('Upload cancelled'));
         });
 
-        xhr.open('POST', uploadUrl);
+        xhr.open('POST', apiUrl);
         console.log('Sending XHR...');
         xhr.send(formData);
       });
